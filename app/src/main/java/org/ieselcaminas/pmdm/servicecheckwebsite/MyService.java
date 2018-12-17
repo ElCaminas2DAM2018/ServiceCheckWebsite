@@ -12,9 +12,11 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MyService extends Service {
-    TaskCheck taskCheck = null;
+    List<TaskCheck> taskChecks = new ArrayList<TaskCheck>();
 
     public class TaskCheck extends AsyncTask<String, String, Void> {
 
@@ -82,9 +84,11 @@ public class MyService extends Service {
         Bundle bundle = intent.getExtras();
         String website = bundle.getString("website");
         String seconds = bundle.getString("seconds");
-        taskCheck = new TaskCheck();
+        TaskCheck taskCheck = new TaskCheck();
         // If we want the app can start service on several web sites (several startService calls)
-        //taskCheck.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, website, seconds);
+        taskCheck.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, website, seconds);
+        taskChecks.add(taskCheck);
+
         Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
         return START_STICKY;
         // If we want it to work when the app is swiped out
@@ -94,7 +98,9 @@ public class MyService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        taskCheck.cancel(true);
+        for (TaskCheck taskCheck: taskChecks) {
+            taskCheck.cancel(true);
+        }
         Toast.makeText(this, "Service Destroyed", Toast.LENGTH_LONG).show();
     }
 }
